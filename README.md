@@ -1,6 +1,6 @@
 # GLB to Blender Sync Add-on
 
-This Blender add-on facilitates a seamless workflow between GLB and Blender for architectural visualization projects.
+This Blender add-on facilitates a seamless workflow for importing and syncing GLB files in Blender, particularly useful for architectural visualization projects.
 
 ## Features
 
@@ -25,15 +25,16 @@ This Blender add-on facilitates a seamless workflow between GLB and Blender for 
 
 1. Download the latest release from the [Releases](https://github.com/dudutaulois/glb-blender-sync/releases) page.
 2. In Blender, go to Edit > Preferences > Add-ons.
-3. Click "Install" and select the downloaded ZIP file.
+3. Click "Install" and select the glb_sync.py file from the downloaded ZIP file.
 4. Enable the add-on by checking the box next to "Import-Export: GLB to Blender Sync".
 
 ## Usage
 
-1. Export your Sketchup models as GLB files.
+1. Prepare your GLB files for import.
 2. In Blender, use the "Import GLB Project" option to import the GLB files.
 3. Make necessary adjustments and apply high-quality materials in Blender.
-4. Use the "Sync Project" button to update the Blender scene with any changes made in GLB.
+4. Use the "Sync Project" button to update the Blender scene with any changes made to the source GLB files.
+
 
 ## Folder Structure
 
