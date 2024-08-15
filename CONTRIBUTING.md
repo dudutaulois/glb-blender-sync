@@ -1,6 +1,6 @@
-# Contributing to Sketchup to Blender Sync Add-on
+# Contributing to GLB to Blender Sync Add-on
 
-We welcome contributions to the Sketchup to Blender Sync Add-on! Here are some guidelines to help you get started.
+We welcome contributions to the GLB to Blender Sync Add-on! Here are some guidelines to help you get started.
 
 ## Reporting Issues
 
@@ -31,4 +31,4 @@ If you encounter a bug or have a feature request, please open an issue on the Gi
 
 Please note that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms.
 
-Thank you for contributing to the Sketchup to Blender Sync Add-on!
+Thank you for contributing to the GLB to Blender Sync Add-on!

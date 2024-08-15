@@ -17,14 +17,14 @@
 # ##### END GPL LICENCE BLOCK #####
 
 bl_info = {
-    "name": "Sketchup to Blender Sync",
+    "name": "GLB Importer and Sync",
     "author": "DuDutaulois",
     "version": (1, 0, 4),
     "blender": (4, 0, 0),
-    "location": "View3D > Sidebar > Sketchup Sync & Properties > Render > Sketchup Sync",
-    "description": "Sync Sketchup models with Blender",
+    "location": "View3D > Sidebar > GLB Sync & Properties > Render > GLB Sync",
+    "description": "Import and Sync GLB files with Blender",
     "warning": "",
-    "doc_url": "https://github.com/dudutaulois/sketchup-blender-sync",
+    "doc_url": "https://github.com/dudutaulois/glb-blender-sync",
     "category": "Import-Export",
 }
 
@@ -77,14 +77,14 @@ def scan_for_glb_files(folder_path):
     return glb_files
 
 def load_import_data(context):
-    import_data = json.loads(context.scene.sketchup_sync.import_data)
+    import_data = json.loads(context.scene.glb_sync.import_data)
     for obj_name, glb_source in import_data.items():
         if obj_name in context.scene.objects:
             context.scene.objects[obj_name]["glb_source"] = glb_source
 
 def check_for_updates(context):
     updates = []
-    import_data = json.loads(context.scene.sketchup_sync.import_data)
+    import_data = json.loads(context.scene.glb_sync.import_data)
     for obj_name, glb_source in import_data.items():
         if os.path.exists(glb_source):
             file_mod_time = os.path.getmtime(glb_source)
@@ -96,14 +96,14 @@ def check_for_updates(context):
 
 # Modify the update_synced_objects_list function
 def update_synced_objects_list(context):
-    sketchup_sync = context.scene.sketchup_sync
-    sketchup_sync.synced_objects.clear()
+    glb_sync = context.scene.glb_sync
+    glb_sync.synced_objects.clear()
     for obj in context.scene.objects:
         if "glb_source" in obj:
-            item = sketchup_sync.synced_objects.add()
+            item = glb_sync.synced_objects.add()
             item.name = obj.name
             item.glb_source = obj["glb_source"]
-    print(f"Updated synced objects list. Total objects: {len(sketchup_sync.synced_objects)}")  # Debug print
+    print(f"Updated synced objects list. Total objects: {len(glb_sync.synced_objects)}")  # Debug print
 
 # Modify the save_import_data function
 def save_import_data(context):
@@ -112,13 +112,13 @@ def save_import_data(context):
         if "glb_source" in obj:
             import_data[obj.name] = obj["glb_source"]
     
-    context.scene.sketchup_sync.import_data = json.dumps(import_data)
+    context.scene.glb_sync.import_data = json.dumps(import_data)
 
 
-class SKETCHUP_SYNC_OT_import_project(Operator, ImportHelper):
-    bl_idname = "sketchup_sync.import_project"
-    bl_label = "Import Sketchup Project"
-    bl_description = "Import GLB files from Sketchup project"
+class GLB_SYNC_OT_import_project(Operator, ImportHelper):
+    bl_idname = "glb_sync.import_project"
+    bl_label = "Import GLB Project"
+    bl_description = "Import GLB files from project"
 
     directory: StringProperty(subtype="DIR_PATH")
     files: CollectionProperty(type=bpy.types.OperatorFileListElement)
@@ -132,7 +132,7 @@ class SKETCHUP_SYNC_OT_import_project(Operator, ImportHelper):
     material_mode: EnumProperty(
         name="Material Handling",
         items=[
-            ('KEEP', "Keep Sketchup Materials", "Use materials from the GLB file"),
+            ('KEEP', "Keep GLB Materials", "Use materials from the GLB file"),
             ('REPLACE', "Replace with Blender Materials", "Replace materials with Blender defaults"),
         ],
         default='KEEP'
@@ -189,10 +189,10 @@ class SKETCHUP_SYNC_OT_import_project(Operator, ImportHelper):
         layout.prop(self, "import_all")
         layout.prop(self, "material_mode")
 
-class SKETCHUP_SYNC_OT_sync_project(Operator):
-    bl_idname = "sketchup_sync.sync_project"
-    bl_label = "Sync Sketchup Project"
-    bl_description = "Sync changes from Sketchup project"
+class GLB_SYNC_OT_sync_project(Operator):
+    bl_idname = "glb_sync.sync_project"
+    bl_label = "Sync GLB Project"
+    bl_description = "Sync changes from GLB project"
 
     preserve_materials: BoolProperty(
         name="Preserve Blender Materials",
@@ -244,7 +244,7 @@ class SKETCHUP_SYNC_OT_sync_project(Operator):
         layout = self.layout
         layout.prop(self, "preserve_materials")
 
-class SKETCHUP_SYNC_UL_synced_objects(UIList):
+class GLB_SYNC_UL_synced_objects(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(text=item.name, icon='OBJECT_DATA')
@@ -253,84 +253,84 @@ class SKETCHUP_SYNC_UL_synced_objects(UIList):
             else:
                 layout.label(text="Source not available")
 
-class SKETCHUP_SYNC_OT_remove_sync(Operator):
-    bl_idname = "sketchup_sync.remove_sync"
+class GLB_SYNC_OT_remove_sync(Operator):
+    bl_idname = "glb_sync.remove_sync"
     bl_label = "Remove Sync"
     bl_description = "Remove the selected object from sync tracking"
 
     def execute(self, context):
-        obj = context.scene.sketchup_sync.synced_objects[context.scene.sketchup_sync.synced_objects_index]
+        obj = context.scene.glb_sync.synced_objects[context.scene.glb_sync.synced_objects_index]
         if obj.name in context.scene.objects:
             del context.scene.objects[obj.name]["glb_source"]
             del context.scene.objects[obj.name]["last_updated"]
-        context.scene.sketchup_sync.synced_objects.remove(context.scene.sketchup_sync.synced_objects_index)
+        context.scene.glb_sync.synced_objects.remove(context.scene.glb_sync.synced_objects_index)
         save_import_data(context)
         return {'FINISHED'}
 
 
-class SKETCHUP_SYNC_synced_object(PropertyGroup):
+class GLB_SYNC_synced_object(PropertyGroup):
     name: StringProperty()
     glb_source: StringProperty()
 
-class SKETCHUP_SYNC_properties(PropertyGroup):
+class GLB_SYNC_properties(PropertyGroup):
     import_data: StringProperty(
         name="Import Data",
         description="JSON string containing import data",
         default="{}"
     )
-    synced_objects: CollectionProperty(type=SKETCHUP_SYNC_synced_object)
+    synced_objects: CollectionProperty(type=GLB_SYNC_synced_object)
     synced_objects_index: IntProperty()
 
 
-class SKETCHUP_SYNC_PT_sidebar_panel(Panel):
-    bl_label = "Sketchup Sync"
-    bl_idname = "SKETCHUP_SYNC_PT_sidebar_panel"
+class GLB_SYNC_PT_sidebar_panel(Panel):
+    bl_label = "GLB Sync"
+    bl_idname = "GLB_SYNC_PT_sidebar_panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "Sketchup Sync"
+    bl_category = "GLB Sync"
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("sketchup_sync.import_project", text="Import Sketchup Project")
-        layout.operator("sketchup_sync.sync_project", text="Sync Project")
+        layout.operator("glb_sync.import_project", text="Import GLB Project")
+        layout.operator("glb_sync.sync_project", text="Sync Project")
         
         layout.separator()
         layout.label(text="Synced Objects:")
         row = layout.row()
-        row.template_list("SKETCHUP_SYNC_UL_synced_objects", "", context.scene.sketchup_sync, "synced_objects", context.scene.sketchup_sync, "synced_objects_index")
+        row.template_list("GLB_SYNC_UL_synced_objects", "", context.scene.glb_sync, "synced_objects", context.scene.glb_sync, "synced_objects_index")
         col = row.column(align=True)
-        col.operator("sketchup_sync.remove_sync", icon='X', text="")
+        col.operator("glb_sync.remove_sync", icon='X', text="")
 
-class SKETCHUP_SYNC_PT_render_panel(Panel):
-    bl_label = "Sketchup Sync"
-    bl_idname = "SKETCHUP_SYNC_PT_render_panel"
+class GLB_SYNC_PT_render_panel(Panel):
+    bl_label = "GLB Sync"
+    bl_idname = "GLB_SYNC_PT_render_panel"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("sketchup_sync.import_project", text="Import Sketchup Project")
-        layout.operator("sketchup_sync.sync_project", text="Sync Project")
+        layout.operator("glb_sync.import_project", text="Import GLB Project")
+        layout.operator("glb_sync.sync_project", text="Sync Project")
 
 classes = (
-    SKETCHUP_SYNC_synced_object,
-    SKETCHUP_SYNC_properties,
-    SKETCHUP_SYNC_PT_sidebar_panel,
-    SKETCHUP_SYNC_PT_render_panel,
-    SKETCHUP_SYNC_OT_import_project,
-    SKETCHUP_SYNC_OT_sync_project,
-    SKETCHUP_SYNC_UL_synced_objects,
-    SKETCHUP_SYNC_OT_remove_sync,
+    GLB_SYNC_synced_object,
+    GLB_SYNC_properties,
+    GLB_SYNC_PT_sidebar_panel,
+    GLB_SYNC_PT_render_panel,
+    GLB_SYNC_OT_import_project,
+    GLB_SYNC_OT_sync_project,
+    GLB_SYNC_UL_synced_objects,
+    GLB_SYNC_OT_remove_sync,
 )
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-    bpy.types.Scene.sketchup_sync = PointerProperty(type=SKETCHUP_SYNC_properties)
+    bpy.types.Scene.glb_sync = PointerProperty(type=GLB_SYNC_properties)
 
 def unregister():
-    del bpy.types.Scene.sketchup_sync
+    del bpy.types.Scene.glb_sync
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
 

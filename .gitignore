@@ -2,6 +2,10 @@
 *.blend1
 *.blend2
 *.blend3
+glb-tests/
+/glb-tests
+.glb-tests
+./glb-tests/
 
 # Python cache
 __pycache__/
