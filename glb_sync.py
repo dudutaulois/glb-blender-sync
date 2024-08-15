@@ -36,26 +36,26 @@ from bpy_extras.io_utils import ImportHelper
 from bpy.props import StringProperty, CollectionProperty, BoolProperty, PointerProperty, EnumProperty, IntProperty
 
 def import_glb(filepath):
-    # Store the current object count
+    print(f"Importing GLB file: {filepath}")  # Debug print
     initial_object_count = len(bpy.data.objects)
     
-    # Import the GLB file
     bpy.ops.import_scene.gltf(filepath=filepath)
     
-    # Get the newly imported objects
     new_objects = [obj for obj in bpy.data.objects if obj not in bpy.context.scene.objects[:initial_object_count]]
+    print(f"New objects imported: {len(new_objects)}")  # Debug print
     
-    # Rename the root object (if any) based on the file name
     file_name = os.path.splitext(os.path.basename(filepath))[0]
     root_objects = [obj for obj in new_objects if obj.parent is None]
     
     renamed_objects = []
+    print(f"Attempting to rename objects for file: {file_name}")  # Debug print
+    print(f"Root objects found: {len(root_objects)}")  # Debug print
+    
     if root_objects:
         for root_obj in root_objects:
             new_name = file_name
             counter = 1
             
-            # Check if the name already exists
             while new_name in bpy.data.objects:
                 new_name = f"{file_name}.{str(counter).zfill(3)}"
                 counter += 1
@@ -64,7 +64,12 @@ def import_glb(filepath):
             renamed_objects.append(root_obj)
             print(f"Renamed object to: {root_obj.name}")  # Debug print
     else:
-        print(f"No root objects found for {file_name}")  # Debug print
+        print(f"No root objects found for {file_name}, renaming all new objects")  # Debug print
+        for obj in new_objects:
+            new_name = f"{file_name}.{obj.name}"
+            obj.name = new_name
+            renamed_objects.append(obj)
+            print(f"Renamed object to: {obj.name}")  # Debug print
     
     return renamed_objects
 
@@ -94,18 +99,19 @@ def check_for_updates(context):
                     updates.append((obj_name, glb_source))
     return updates
 
-# Modify the update_synced_objects_list function
 def update_synced_objects_list(context):
     glb_sync = context.scene.glb_sync
     glb_sync.synced_objects.clear()
+    print(f"Total objects in scene: {len(context.scene.objects)}")  # Debug print
+    print("Objects with 'glb_source' attribute:")  # Debug print
     for obj in context.scene.objects:
         if "glb_source" in obj:
             item = glb_sync.synced_objects.add()
             item.name = obj.name
             item.glb_source = obj["glb_source"]
+            print(f"  - {obj.name}: {obj['glb_source']}")  # Debug print
     print(f"Updated synced objects list. Total objects: {len(glb_sync.synced_objects)}")  # Debug print
 
-# Modify the save_import_data function
 def save_import_data(context):
     import_data = {}
     for obj in context.scene.objects:
@@ -113,7 +119,7 @@ def save_import_data(context):
             import_data[obj.name] = obj["glb_source"]
     
     context.scene.glb_sync.import_data = json.dumps(import_data)
-
+    print(f"Saved import data for {len(import_data)} objects")  # Debug print
 
 class GLB_SYNC_OT_import_project(Operator, ImportHelper):
     bl_idname = "glb_sync.import_project"
@@ -158,12 +164,11 @@ class GLB_SYNC_OT_import_project(Operator, ImportHelper):
                 imported_objects = import_glb(glb_file)
                 total_imported += len(imported_objects)
                 
-                # Store the source file information
                 for obj in imported_objects:
                     obj["glb_source"] = glb_file
                     obj["last_updated"] = os.path.getmtime(glb_file)
                 
-                self.report({'INFO'}, f"Imported {len(imported_objects)} objects from {os.path.basename(glb_file)}")
+                print(f"Imported {len(imported_objects)} objects from {os.path.basename(glb_file)}")  # Debug print
             except Exception as e:
                 self.report({'ERROR'}, f"Failed to import {os.path.basename(glb_file)}: {str(e)}")
             
@@ -171,7 +176,6 @@ class GLB_SYNC_OT_import_project(Operator, ImportHelper):
         
         wm.progress_end()
         
-        # Apply material handling
         if self.material_mode == 'REPLACE':
             for obj in context.selected_objects:
                 if obj.type == 'MESH':
@@ -232,7 +236,7 @@ class GLB_SYNC_OT_sync_project(Operator):
                 self.report({'ERROR'}, f"Failed to update {obj_name}: {str(e)}")
         
         save_import_data(context)
-        update_synced_objects_list(context)  # Add this line
+        update_synced_objects_list(context)
         
         self.report({'INFO'}, f"Synced {len(updates)} objects")
         return {'FINISHED'}
