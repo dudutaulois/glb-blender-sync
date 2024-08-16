@@ -2,7 +2,10 @@
 
 This Blender add-on facilitates a seamless workflow for importing and syncing GLB files in Blender, particularly useful for architectural visualization projects.
 
+![GLB to Blender Sync Add-on Logo](https://i.ibb.co/JrfYxLM/DALL-E-2024-08-15-22-03-43-A-shield-with-a-clean-modern-design-incorporating-the-initials-GBS-for-GL.webp)
+
 ## Features
+
 
 1. **GLB Importer**
    - Imports multiple GLB files
